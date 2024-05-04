@@ -1,7 +1,5 @@
 
-// ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables, unused_local_variable, avoid_print
-
-import 'dart:js';
+// ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables, unused_local_variable
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -42,13 +40,14 @@ class Stock extends StatefulWidget {
   @override
   State<Stock> createState() => _StockState();
 }
-
+  String categoriab = '';
+  List<String> listaDeOpcionesB = ["Mothers","Placas de video","Procesadores","Memorias Ram","Memorias de almacenamiento"];
   List<String> listaDeOpciones = ["Mothers","Placas de video","Procesadores","Memorias Ram","Memorias de almacenamiento"];
   String categoria = '';
   String nombre = '';
   int precio = 0;
   int cantidad = 0;
-
+  String busqueda = '';
 
 
 Future<void> editarproductos(BuildContext context,data,docId) async {
@@ -237,10 +236,44 @@ class _StockState extends State<Stock> {
         children: [
 
 
+            Padding(
+              padding: const EdgeInsets.all(25.0),
+              child: TextField(
+                decoration: InputDecoration(labelText: 'Buscar producto'),
+                 onChanged: (value) {
+                  setState(() {
+                    busqueda = value.toLowerCase();
+                  }
+                  );
+                  }
+              ),
+            ),
+
+DropdownButtonFormField(
+  items: listaDeOpcionesB.map((B){
+    return DropdownMenuItem(
+      child: SizedBox(
+        width: double.infinity,
+        child: Text(
+          B,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ),
+      value: B,
+    );
+  }).toList(),
+  onChanged: (value) => categoriab = value!,
+  isDense: true,
+  isExpanded: true,
+),
+
+
           ElevatedButton(onPressed: () {
             agregarboton(context);
           }, 
           child: const Text('Agregar')),
+
+
 
 
 Expanded(
@@ -263,6 +296,16 @@ Expanded(
         return Center(child: Text('Error ${snapshot.error}'));        
       }
 
+  final filteredProducts = snapshot.data!.docs.where((document) {
+                    final Map<String, dynamic> data = document.data() as Map<String, dynamic>;
+                    final nombre = data['nombre'] as String;
+                    return nombre.toLowerCase().contains(busqueda.toLowerCase());
+                  }).toList();
+
+
+
+
+
       if (snapshot.data!.docs.isEmpty) {
 
         return Center(child: Text('No hay productos'));
@@ -277,10 +320,11 @@ Expanded(
             DataColumn(label: Text('Precio')),
             DataColumn(label: Text('Cantidad')),
             DataColumn(label: Text('Categoria')),
-            DataColumn(label: Text('Editar')),
-            DataColumn(label: Text('Eliminar')),
+            DataColumn(label: Text('')),
+            DataColumn(label: Text('')),
           ],
-           rows: snapshot.data!.docs.map((DocumentSnapshot document) {
+
+           rows: filteredProducts.map((DocumentSnapshot document) {
             final Map<String, dynamic> data = document.data() as Map<String, dynamic>;
              final String docId = document.id;
             return DataRow(
