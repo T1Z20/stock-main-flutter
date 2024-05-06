@@ -40,8 +40,6 @@ class Stock extends StatefulWidget {
   @override
   State<Stock> createState() => _StockState();
 }
-  String categoriab = '';
-  List<String> listaDeOpcionesB = ["Mothers","Placas de video","Procesadores","Memorias Ram","Memorias de almacenamiento"];
   List<String> listaDeOpciones = ["Mothers","Placas de video","Procesadores","Memorias Ram","Memorias de almacenamiento"];
   String categoria = '';
   String nombre = '';
@@ -96,8 +94,8 @@ mainAxisSize: MainAxisSize.min,
       value: e,
     );
   }).toList(),
-  value: nuevaCategoria, // Establecer el valor inicial seleccionado
-  onChanged: (value) => nuevaCategoria = value as String, // Actualizar la nueva categoría seleccionada
+  value: nuevaCategoria, 
+  onChanged: (value) => nuevaCategoria = value as String, 
   isDense: true,
   isExpanded: true,
 )
@@ -107,14 +105,13 @@ mainAxisSize: MainAxisSize.min,
             ElevatedButton(
               onPressed: () async {
     try {
-      // Actualizar el producto en la base de datos
       await FirebaseFirestore.instance.collection('stock').doc(docId).update({
         'nombre': nuevoNombre,
         'precio': nuevoPrecio,
         'cantidad': nuevaCantidad,
         'categoria': nuevaCategoria
       });
-      // Cerrar el diálogo
+
       Navigator.of(context).pop();
     } catch (e) {
       print('Error al actualizar el producto: $e');
@@ -248,25 +245,6 @@ class _StockState extends State<Stock> {
                   }
               ),
             ),
-
-DropdownButtonFormField(
-  items: listaDeOpcionesB.map((B){
-    return DropdownMenuItem(
-      child: SizedBox(
-        width: double.infinity,
-        child: Text(
-          B,
-          overflow: TextOverflow.ellipsis,
-        ),
-      ),
-      value: B,
-    );
-  }).toList(),
-  onChanged: (value) => categoriab = value!,
-  isDense: true,
-  isExpanded: true,
-),
-
 
           ElevatedButton(onPressed: () {
             agregarboton(context);
