@@ -1,8 +1,10 @@
 
 // ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables, unused_local_variable
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:stock_main/Login.dart';
 import 'package:stock_main/firebase_options.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -20,17 +22,13 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  @override
+ @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Material App',
-      home: Scaffold(
-        appBar: AppBar(
-          title: const Text('Material App Bar'),
-        ),
-        body: Stock(),
-        ),
-      );
+      title: 'Stock Juancho',
+      home: const Login(),
+       
+    );
   }
 }
 
@@ -226,14 +224,22 @@ class _StockState extends State<Stock> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-
       body: Center(
         child: Column(
         
         children: [
 
 
-            Padding(
+IconButton(
+  onPressed: () async {
+    
+    await FirebaseAuth.instance.signOut();
+    Navigator.pushReplacement(context,
+     MaterialPageRoute(builder: (context)=> Login()));
+  },
+   icon: Icon(Icons.logout)),
+
+Padding(
               padding: const EdgeInsets.all(25.0),
               child: TextField(
                 decoration: InputDecoration(labelText: 'Buscar producto'),
@@ -246,6 +252,10 @@ class _StockState extends State<Stock> {
               ),
             ),
 
+
+
+
+            
           ElevatedButton(onPressed: () {
             agregarboton(context);
           }, 
