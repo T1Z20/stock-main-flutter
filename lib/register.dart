@@ -16,6 +16,11 @@ class Register extends StatefulWidget {
 var usuario = '';
 var contra = '';
 var contra2 = '';
+var Nombre = '';
+var Apellido = '';
+var DNI = '';
+var Telefono = '';
+
 FirebaseAuth auth = FirebaseAuth.instance;
 
 class _RegisterState extends State<Register> {
@@ -27,7 +32,7 @@ class _RegisterState extends State<Register> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             TextField(
-              decoration: const InputDecoration(labelText: 'Nombre de usuario'),
+              decoration: const InputDecoration(labelText: 'Correo'),
               onChanged: (value) => usuario = value,
             ),
             TextField(
@@ -36,9 +41,29 @@ class _RegisterState extends State<Register> {
               onChanged: (value) => contra = value,
             ),
             TextField(
-              decoration: const InputDecoration(labelText: 'Confirma contrase;a'),
+              decoration: const InputDecoration(labelText: 'Confirmar contrase;a'),
               obscureText: true,
               onChanged: (value) => contra2 = value,
+            ),
+            TextField(
+              decoration: const InputDecoration(labelText: 'Nombre'),
+
+              onChanged: (value) => Nombre = value,
+            ),
+            TextField(
+              decoration: const InputDecoration(labelText: 'Apellido'),
+
+              onChanged: (value) => Apellido = value,
+            ),
+            TextField(
+              decoration: const InputDecoration(labelText: 'DNI'),
+
+              onChanged: (value) => DNI = value,
+            ),
+            TextField(
+              decoration: const InputDecoration(labelText: 'Telefono'),
+
+              onChanged: (value) => Telefono = value,
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -47,13 +72,26 @@ class _RegisterState extends State<Register> {
                   padding: const EdgeInsets.all(25.0),
                   child: ElevatedButton(
                     onPressed: () async {
-                      if (usuario.isNotEmpty && contra.isNotEmpty && contra2.isNotEmpty) {
+                      if (usuario.isNotEmpty && contra.isNotEmpty && contra2.isNotEmpty && Nombre.isNotEmpty && Apellido.isNotEmpty && DNI.isNotEmpty && Telefono.isNotEmpty ) {
                         if (contra == contra2) {
                           try {
-                            await FirebaseAuth.instance.createUserWithEmailAndPassword(
+                            UserCredential usuario1=  await FirebaseAuth.instance.createUserWithEmailAndPassword(
                               email: usuario,
                               password: contra,
                             );
+
+                            User? user = usuario1.user;
+                                if (user != null) {
+                                  await FirebaseFirestore.instance.collection('Usuarios').doc(user.uid).set({
+                                  
+                                    'Nombre': Nombre,
+                                    'Apellido': Apellido,
+                                    'DNI': DNI,
+                                    'Telefono': Telefono
+                                  }
+                                  );
+                                }
+
                             showDialog(
                               context: context,
                               builder: (BuildContext context) {

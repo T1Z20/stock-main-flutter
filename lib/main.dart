@@ -9,24 +9,32 @@ import 'package:stock_main/firebase_options.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    const MyApp());
   firebaseinit();
   }
 
   Future<void> firebaseinit() async {
 
+var usuarioAPPBAR = '';
+
+
     WidgetsFlutterBinding.ensureInitialized();
     await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   
-  }
+
+}
+
+
+
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
  @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Stock Juancho',
-      home: const Login(),
+      debugShowCheckedModeBanner: false,
+      home: Login(),
        
     );
   }
@@ -220,132 +228,135 @@ try {
     });
   }
 
+
 class _StockState extends State<Stock> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: StreamBuilder<DocumentSnapshot>(
+          stream: FirebaseFirestore.instance.collection('Usuarios').doc(FirebaseAuth.instance.currentUser?.uid).snapshots(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Text('Cargando...');
+            }
+            if (snapshot.hasError) {
+              return Text('Error: ${snapshot.error}');
+            }
+            if (!snapshot.hasData || !snapshot.data!.exists) {
+              return Text('No hay datos para este usuario');
+            }
+
+            var userData = snapshot.data!.data() as Map<String, dynamic>;
+            String usuarioAppBar = userData['Nombre'];
+
+            return Text('Hola querido $usuarioAppBar');
+          },
+        ),
+        actions: [
+          IconButton(
+            onPressed: () async {
+              await FirebaseAuth.instance.signOut();
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => Login()),
+              );
+            },
+            icon: Icon(Icons.logout),
+          ),
+        ],
+      ),
       body: Center(
         child: Column(
-        
-        children: [
 
-
-IconButton(
-  onPressed: () async {
-    
-    await FirebaseAuth.instance.signOut();
-    Navigator.pushReplacement(context,
-     MaterialPageRoute(builder: (context)=> Login()));
-  },
-   icon: Icon(Icons.logout)),
-
-Padding(
+          children: [
+            Padding(
               padding: const EdgeInsets.all(25.0),
               child: TextField(
                 decoration: InputDecoration(labelText: 'Buscar producto'),
-                 onChanged: (value) {
+                onChanged: (value) {
                   setState(() {
                     busqueda = value.toLowerCase();
-                  }
-                  );
-                  }
+                  });
+                },
               ),
             ),
+            ElevatedButton(
+              onPressed: () {
+                agregarboton(context);
+              },
+              child: const Text('Agregar'),
+            ),
+            Expanded(
+              child: StreamBuilder(
+                stream: FirebaseFirestore.instance
+                    .collection('stock')
+                    .snapshots(),
+                builder: (BuildContext context,
+                    AsyncSnapshot<QuerySnapshot> snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Center(child: CircularProgressIndicator());
+                  }
 
+                  if (snapshot.hasError) {
+                    return Center(child: Text('Error ${snapshot.error}'));
+                  }
 
-
-
-            
-          ElevatedButton(onPressed: () {
-            agregarboton(context);
-          }, 
-          child: const Text('Agregar')),
-
-
-
-
-Expanded(
-  child: StreamBuilder(
-    stream: FirebaseFirestore.instance
-    .collection('stock')
-    .snapshots(),
-
-    builder: (BuildContext context, 
-    AsyncSnapshot<QuerySnapshot> snapshot) {
-
-      if (snapshot.connectionState == ConnectionState.waiting) {
-
-        return Center(child: CircularProgressIndicator());
-        
-      }
-
-      if (snapshot.hasError) {
-
-        return Center(child: Text('Error ${snapshot.error}'));        
-      }
-
-  final filteredProducts = snapshot.data!.docs.where((document) {
-                    final Map<String, dynamic> data = document.data() as Map<String, dynamic>;
+                  final filteredProducts = snapshot.data!.docs.where((document) {
+                    final Map<String, dynamic> data =
+                        document.data() as Map<String, dynamic>;
                     final nombre = data['nombre'] as String;
                     return nombre.toLowerCase().contains(busqueda.toLowerCase());
                   }).toList();
 
+                  if (snapshot.data!.docs.isEmpty) {
+                    return Center(child: Text('No hay productos'));
+                  }
 
-
-
-
-      if (snapshot.data!.docs.isEmpty) {
-
-        return Center(child: Text('No hay productos'));
-
-      }
-
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-       child: DataTable(
-        columns: [
-            DataColumn(label: Text('Nombre')),
-            DataColumn(label: Text('Precio')),
-            DataColumn(label: Text('Cantidad')),
-            DataColumn(label: Text('Categoria')),
-            DataColumn(label: Text('')),
-            DataColumn(label: Text('')),
+                  return SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: DataTable(
+                      columns: [
+                        DataColumn(label: Text('Nombre')),
+                        DataColumn(label: Text('Precio')),
+                        DataColumn(label: Text('Cantidad')),
+                        DataColumn(label: Text('Categoria')),
+                        DataColumn(label: Text('')),
+                        DataColumn(label: Text('')),
+                      ],
+                      rows: filteredProducts.map((DocumentSnapshot document) {
+                        final Map<String, dynamic> data =
+                            document.data() as Map<String, dynamic>;
+                        final String docId = document.id;
+                        return DataRow(
+                          cells: [
+                            DataCell(Text(data['nombre'])),
+                            DataCell(Text(data['precio'].toString())),
+                            DataCell(Text(data['cantidad'].toString())),
+                            DataCell(Text(data['categoria'])),
+                            DataCell(IconButton(
+                              icon: Icon(Icons.edit),
+                              onPressed: () {
+                                editarproductos(context, data, docId);
+                              },
+                            )),
+                            DataCell(IconButton(
+                              icon: Icon(Icons.delete_rounded),
+                              onPressed: () {
+                                eliminarproductos(docId);
+                              },
+                            )),
+                          ],
+                        );
+                      }).toList(),
+                    ),
+                  );
+                },
+              ),
+            )
           ],
-
-           rows: filteredProducts.map((DocumentSnapshot document) {
-            final Map<String, dynamic> data = document.data() as Map<String, dynamic>;
-             final String docId = document.id;
-            return DataRow(
-              cells: [
-                DataCell(Text(data['nombre'])),
-                DataCell(Text(data['precio'].toString())),
-                DataCell(Text(data['cantidad'].toString())),
-                DataCell(Text(data['categoria'])),
-                DataCell(IconButton(
-                  icon: Icon(Icons.edit),
-                  onPressed: () {
-                  editarproductos(context,data,docId);
-                  },
-                )),
-                DataCell(IconButton(
-                  icon: Icon(Icons.delete_rounded),
-                  onPressed: () {
-                  eliminarproductos(docId);
-                  },
-                )),
-              ],
-            );
-          }).toList(),
         ),
-      );
-    },
-  ),
-)
-        ]
-        )
-      )
+      ),
     );
-
-
   }
 }
