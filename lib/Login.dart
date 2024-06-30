@@ -1,5 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:stock_main/Desarrolador.dart';
 import 'package:stock_main/firebase_options.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:stock_main/main.dart';
@@ -28,7 +29,7 @@ class _LoginState extends State<Login> {
  mainAxisAlignment: MainAxisAlignment.center,
   children: [
             TextField(
-              decoration: const InputDecoration(labelText: 'Nombre de usuario'),
+              decoration: const InputDecoration(labelText: 'email de usuario'),
               onChanged: (value) => usuario = value,
             ),
             TextField(
@@ -52,6 +53,8 @@ class _LoginState extends State<Login> {
                         context,
                         MaterialPageRoute(builder: (context) => const Stock()),
                       );
+
+
       } catch (error) {
         showDialog(
                               context: context,
@@ -93,8 +96,24 @@ class _LoginState extends State<Login> {
   ],
 
  ),
+
+Padding(
+                  padding: const EdgeInsets.all(25.0),
+                  child: ElevatedButton(
+                    onPressed: () {
+                  Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) =>  LoginScreen()),
+                      );
+                    },
+                    child: const Text('Login de desarrollador'),),
+                )
+
   ]
     ),
+
+
+    
     )
     );
   }
