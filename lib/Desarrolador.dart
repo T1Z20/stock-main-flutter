@@ -48,7 +48,7 @@ class _LoginScreenState extends State<LoginScreen> {
         if (userData['rol'] == 'desarrollador') {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => desarrolladorscreen()),
+            MaterialPageRoute(builder: (context) => InstitucionesScreen()),
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
