@@ -67,6 +67,182 @@ class _InstitucionesScreenState extends State<InstitucionesScreen> {
     });
   }
 
+  Future<void> gestionarAdministradores(BuildContext context, String institucionId) async {
+    String dni = '';
+
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Agregar Administrador'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                decoration: const InputDecoration(labelText: 'DNI del Usuario'),
+                onChanged: (value) => dni = value,
+              ),
+            ],
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () async {
+                final userSnapshot = await FirebaseFirestore.instance
+                    .collection('Usuarios')
+                    .where('DNI', isEqualTo: dni)
+                    .limit(1)
+                    .get();
+
+                if (userSnapshot.docs.isNotEmpty) {
+                  final userDoc = userSnapshot.docs.first;
+                  final userData = userDoc.data();
+
+                  final confirmar = await showDialog<bool>(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: const Text('Confirmar'),
+                        content: Text(
+                          '¿Deseas hacer administrador a ${userData['Nombre']} ${userData['Apellido']}?',
+                        ),
+                        actions: [
+                          ElevatedButton(
+                            onPressed: () => Navigator.of(context).pop(true),
+                            child: const Text('Sí'),
+                          ),
+                          ElevatedButton(
+                            onPressed: () => Navigator.of(context).pop(false),
+                            child: const Text('No'),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+
+                  if (confirmar == true) {
+                    await FirebaseFirestore.instance
+                        .collection('Usuarios')
+                        .doc(userDoc.id)
+                        .update({
+                      'id_institucion': institucionId,
+                      'rol': 'admin',
+                    });
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Administrador agregado')),
+                    );
+                  }
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Usuario no encontrado')),
+                  );
+                }
+
+                Navigator.of(context).pop();
+              },
+              child: const Text('Agregar'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancelar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> eliminarAdministrador(BuildContext context, String userId, String institucionId) async {
+    final confirmar = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirmar Eliminación'),
+          content: const Text('¿Estás seguro de que deseas eliminar a este administrador?'),
+          actions: [
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Sí'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('No'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmar == true) {
+      await FirebaseFirestore.instance.collection('Usuarios').doc(userId).update({
+        'id_institucion': null,
+        'rol': null,
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Administrador eliminado')),
+      );
+
+      // Refrescar el estado después de eliminar
+      setState(() {});
+    }
+  }
+
+  Future<void> mostrarAdministradores(BuildContext context, String institucionId) async {
+    final administradoresSnapshot = await FirebaseFirestore.instance
+        .collection('Usuarios')
+        .where('id_institucion', isEqualTo: institucionId)
+        .where('rol', isEqualTo: 'admin')
+        .get();
+
+    final administradores = administradoresSnapshot.docs.map((doc) {
+      final data = doc.data();
+      return {
+        'id': doc.id,
+        'nombreCompleto': "${data['Nombre']} ${data['Apellido']}",
+      };
+    }).toList();
+
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Administradores'),
+          content: administradores.isEmpty
+              ? const Text('No hay administradores asignados.')
+              : Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: administradores.map((admin) {
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(admin['nombreCompleto']!),
+                        IconButton(
+                          icon: const Icon(Icons.delete),
+                          onPressed: () {
+                            eliminarAdministrador(context, admin['id']!, institucionId);
+                          },
+                        ),
+                      ],
+                    );
+                  }).toList(),
+                ),
+          actions: [
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cerrar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -122,8 +298,9 @@ class _InstitucionesScreenState extends State<InstitucionesScreen> {
                         DataColumn(label: Text('Nombre')),
                         DataColumn(label: Text('Domicilio')),
                         DataColumn(label: Text('Teléfono')),
-                        DataColumn(label: Text('')),
-                        DataColumn(label: Text('')),
+                        DataColumn(label: Text('Administradores')),
+                        DataColumn(label: Text('Editar')),
+                        DataColumn(label: Text('Gestión de Admins')),
                       ],
                       rows: filteredInstituciones.map((DocumentSnapshot document) {
                         final Map<String, dynamic> data = document.data() as Map<String, dynamic>;
@@ -133,16 +310,24 @@ class _InstitucionesScreenState extends State<InstitucionesScreen> {
                             DataCell(Text(data['nombre'])),
                             DataCell(Text(data['domicilio'])),
                             DataCell(Text(data['telefono'])),
+                            DataCell(
+                              IconButton(
+                                icon: const Icon(Icons.visibility),
+                                onPressed: () {
+                                  mostrarAdministradores(context, docId);
+                                },
+                              ),
+                            ),
                             DataCell(IconButton(
                               icon: const Icon(Icons.edit),
                               onPressed: () {
-                                
+                                // Funcionalidad para editar institución
                               },
                             )),
                             DataCell(IconButton(
                               icon: const Icon(Icons.admin_panel_settings),
                               onPressed: () {
-                                
+                                gestionarAdministradores(context, docId);
                               },
                             )),
                           ],
