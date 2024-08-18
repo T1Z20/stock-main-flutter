@@ -298,7 +298,6 @@ class _InstitucionesScreenState extends State<InstitucionesScreen> {
                         DataColumn(label: Text('Nombre')),
                         DataColumn(label: Text('Domicilio')),
                         DataColumn(label: Text('Teléfono')),
-                        DataColumn(label: Text('Administradores')),
                         DataColumn(label: Text('Editar')),
                         DataColumn(label: Text('Gestión de Admins')),
                       ],
@@ -312,18 +311,12 @@ class _InstitucionesScreenState extends State<InstitucionesScreen> {
                             DataCell(Text(data['telefono'])),
                             DataCell(
                               IconButton(
-                                icon: const Icon(Icons.visibility),
+                                icon: const Icon(Icons.edit),
                                 onPressed: () {
                                   mostrarAdministradores(context, docId);
                                 },
                               ),
-                            ),
-                            DataCell(IconButton(
-                              icon: const Icon(Icons.edit),
-                              onPressed: () {
-                                // Funcionalidad para editar institución
-                              },
-                            )),
+                            ),                       
                             DataCell(IconButton(
                               icon: const Icon(Icons.admin_panel_settings),
                               onPressed: () {
