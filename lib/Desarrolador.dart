@@ -1,10 +1,10 @@
+// ignore_for_file: prefer_const_constructors, use_build_context_synchronously
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:stock_main/Login.dart';
 import 'package:stock_main/desarrolladorscreen.dart';
 import 'package:stock_main/firebase_options.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:stock_main/main.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 void main() async {

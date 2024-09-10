@@ -1,11 +1,10 @@
-// ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables, unused_local_variable
-
+import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:stock_main/Login.dart';
 import 'package:stock_main/firebase_options.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:stock_main/gestores.dart'; 
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -95,10 +94,13 @@ class _StockState extends State<Stock> {
           },
         ),
         actions: [
-          if (isAdmin) // Mostrar botón si es administrador
+          if (isAdmin)
             IconButton(
               onPressed: () {
-                // Funcionalidad futura para gestionar administradores
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => GestoresScreen()),
+                );
               },
               icon: Icon(Icons.admin_panel_settings),
             ),

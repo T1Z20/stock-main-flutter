@@ -87,7 +87,8 @@ class _RegisterState extends State<Register> {
                                     'Nombre': Nombre,
                                     'Apellido': Apellido,
                                     'DNI': DNI,
-                                    'Telefono': Telefono
+                                    'Telefono': Telefono,
+                                    'rol': 'Usuario'
                                   }
                                   );
                                 }
