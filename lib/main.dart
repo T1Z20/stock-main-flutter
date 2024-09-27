@@ -78,7 +78,7 @@ class _StockState extends State<Stock> {
           stream: FirebaseFirestore.instance.collection('Usuarios').doc(FirebaseAuth.instance.currentUser?.uid).snapshots(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return Text('Cargando...');
+              return Text('Cargando....');
             }
             if (snapshot.hasError) {
               return Text('Error: ${snapshot.error}');
